@@ -1,3 +1,4 @@
+import time
 from search_methods import solver
 from sokoban import Map
 
@@ -10,29 +11,28 @@ class IdaStar(solver.Solver):
         self.heuristic = heuristic
         self.start = self.map
         self.parents = {}
+        self.elapsed_time = 0
+        self.explored_states = 0
 
     def solve(self):
         def df(start: Map, g, limit):
+            self.explored_states += 1
             f = g + self.heuristic(start)
             if f > limit:
                 return f
             if start.is_solved():
-                return self.path(start)
+                return self.path(start)[::-1]
 
-            if start in transposition_table and transposition_table[start] < g:
+            if start in transposition_table and transposition_table[start] <= g:
                 return INSUCCESS
             else:
                 transposition_table[start] = g
 
 
             min = INSUCCESS
-            for move, state in start.get_neighbours_with_move():
+            for state in start.get_neighbours():
                 if not state in visited:
                     self.parents[state] = start
-                    # if move < 5:
-                    #     cost = 1
-                    # else:
-                    #     continue
                     visited.add(state)
                     temp = df(state, g + 1, limit)
                     visited.remove(state)
@@ -42,6 +42,7 @@ class IdaStar(solver.Solver):
                         min = temp
             return min
 
+        start_time = time.time()
         limit = self.heuristic(self.start)
         state = self.start
         self.parents[self.start] = None
@@ -51,12 +52,12 @@ class IdaStar(solver.Solver):
             visited.add(self.start)
             temp = df(state, 0, limit)
             if isinstance(temp, list):
+                self.elapsed_time = time.time() - start_time
                 return temp
             if temp == INSUCCESS:
+                self.elapsed_time = time.time() - start_time
                 return temp
             limit = temp
-
-
 
     def path(self, state: Map):
         sol = [state]
