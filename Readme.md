@@ -14,17 +14,17 @@ Am explorat diverse euristici pentru a optimiza căutarea și am realizat o anal
 
 ## 2. Euristici folosite
 
-### 2.1 Heuristica 1: Manhattan simplu
+### 2.1 Euristica 1: Manhattan simplu
 - **Descriere**: suma distanțelor Manhattan de la fiecare cutie la cea mai apropiată țintă.
 - **Motivație**: Este rapid de calculat și oferă o estimare decentă pentru progres.
 - **Utilizare**: Niciun algoritm nu mai folosește această euristică, dar a servit ca punct de plecare.
 
-### 2.2 Heuristica 2: Manhattan cu asociere Greedy a țintelor
+### 2.2 Euristica 2: Manhattan cu asociere Greedy a țintelor
 - **Descriere**: optimizarea potrivirii cutii-scopuri folosind o abordare Greedy.
 - **Motivație**: Găsește combinația globală optimă, evitând asocieri suboptimale.
 - **Utilizare**: Beam Search folosește această euristică pentru că găsește suficient de rapid soluția chiar și pentru `super_hard_map1` și nu mai are nevoie de altă condiționare.
 
-### 2.3 Heuristica 3: Asociere Greedy cu penalizare colțuri
+### 2.3 Euristica 3: Asociere Greedy cu penalizare colțuri
 - **Descriere**: adaugă penalizări mari pentru cutii blocate în colțuri ireversibile.
 - **Motivație**: Fail-fast — detectează rapid stările imposibile.
 - **Utilizare**: IDA\* folosește această euristică pentru că trece prin foarte multe stări și are nevoie de o euristică fail-fast pentru a mai economisi din timp.

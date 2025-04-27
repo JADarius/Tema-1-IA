@@ -1,5 +1,5 @@
 import sys
-from sokoban import Map
+from sokoban import Map, gif
 from search_methods import beam_search, ida_star, heuristics
 
 if __name__ == '__main__':
@@ -25,9 +25,15 @@ if __name__ == '__main__':
     solution = solver.solve()
 
     if isinstance(solution, list):
+        if algorithm == "ida*":
+            # To avoid crashes when naming the files
+            algorithm = "ida_star"
+        gif.save_images(solution, f"images/{input_file}_{algorithm}_steps")
+        gif.create_gif(f"images/{input_file}_{algorithm}_steps", f"{input_file}_{algorithm}_demo", "images")
         for state in solution:
             print(state)
     else:
         print(solution)
 
-    print(solver.explored_states)
+    print(f"Elapsed time: {solver.elapsed_time} seconds")
+    print(f"Explored states: {solver.explored_states}")
