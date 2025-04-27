@@ -6,6 +6,7 @@ from matplotlib import pyplot as plt
 from typing import Optional
 import yaml
 import os
+import random
 
 
 OBSTACLE_SYMBOL = 1
@@ -60,6 +61,15 @@ class Map:
         for target_x, target_y in targets:
             self.targets.append((target_x, target_y))
             self.map[target_x][target_y] = TARGET_SYMBOL
+        
+        # Hashing setup
+        random.seed(0)
+
+        self.hashtable = [[[random.getrandbits(64) for _ in range(2)] for _ in range(width)] for _ in range(length)]
+        self.hash = 0
+        self.hash ^= self.hashtable[self.player.x][self.player.y][0]
+        for (box_x, box_y) in self.positions_of_boxes.keys():
+            self.hash ^= self.hashtable[box_x][box_y][1]
 
     @classmethod
     def from_str(cls, state_str):
@@ -221,6 +231,8 @@ class Map:
 
         if move < BOX_LEFT:
             if self.player_valid_move(move):
+                # Delete old player position from hash
+                self.hash ^= self.hashtable[self.player.x][self.player.y][0]
                 future_position = self.player.get_future_position(move)
                 if self.map[future_position[0]][future_position[1]] == BOX_SYMBOL:
                     box = self.boxes[self.positions_of_boxes[future_position]]
@@ -229,11 +241,19 @@ class Map:
                     del self.positions_of_boxes[(box.x, box.y)]
                     self.map[box.x][box.y] = 0
 
+                    # Remove old box position from hash
+                    self.hash ^= self.hashtable[box.x][box.y][1]
+
                     box.make_move(move)
                     self.map[box.x][box.y] = BOX_SYMBOL
                     self.positions_of_boxes[(box.x, box.y)] = box.name
 
+                    # Add new box position to hash
+                    self.hash ^= self.hashtable[box.x][box.y][1]
+
                 self.player.make_move(move)
+                # Add new player position to hash
+                self.hash ^= self.hashtable[self.player.x][self.player.y][0]
             else:
                 raise ValueError('Apply Error: Got to make an invalid move')
         elif move <= BOX_DOWN:
@@ -242,6 +262,9 @@ class Map:
             implicit_move = move - 4
 
             if self.box_valid_move(move):
+                # Delete old player position from hash
+                self.hash ^= self.hashtable[self.player.x][self.player.y][0]
+
                 future_position = self.player.get_future_position(implicit_move)
                 if future_position in self.positions_of_boxes:
                     box = self.boxes[self.positions_of_boxes[future_position]]
@@ -258,11 +281,20 @@ class Map:
                 del self.positions_of_boxes[(box.x, box.y)]
                 self.map[box.x][box.y] = 0
 
+                # Remove old box position from hash
+                self.hash ^= self.hashtable[box.x][box.y][1]
+
                 box.make_move(implicit_move)
                 self.map[box.x][box.y] = BOX_SYMBOL
                 self.positions_of_boxes[(box.x, box.y)] = box.name
 
+                # Add new box position to hash
+                self.hash ^= self.hashtable[box.x][box.y][1]
+
                 self.player.make_move(implicit_move)
+
+                # Add new player position to hash
+                self.hash ^= self.hashtable[self.player.x][self.player.y][0]
             else:
                 raise ValueError('Apply Error: Got to make an invalid move')
         else:
@@ -401,10 +433,10 @@ class Map:
         return str(self) < str(other)
 
     def __eq__(self, other):
-        return self.__str__() == other.__str__()
+        return self.__hash__() == other.__hash__()
     
     def __hash__(self):
-        return self.__str__().__hash__()
+        return self.hash
 
     def __str__(self):
         ''' Overriding toString method for Map class'''
