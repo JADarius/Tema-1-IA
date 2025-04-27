@@ -308,6 +308,15 @@ class Map:
             new_map.apply_move(move)
             neighbours.append(new_map)
         return neighbours
+    
+    def get_neighbours_with_move(self):
+        ''' Returns the neighbours of the current state with the move required'''
+        neighbours = []
+        for move in self.filter_possible_moves():
+            new_map = self.copy()
+            new_map.apply_move(move)
+            neighbours.append((move, new_map))
+        return neighbours
 
     def check_existing_folder(self, path):
         ''' Checks if the path exists, if not creates it'''
